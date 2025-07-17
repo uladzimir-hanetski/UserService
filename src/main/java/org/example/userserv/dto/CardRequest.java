@@ -1,9 +1,13 @@
 package org.example.userserv.dto;
 
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import jakarta.validation.groups.Default;
 import lombok.Data;
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Data
 public class CardRequest {
@@ -26,7 +30,5 @@ public class CardRequest {
     private LocalDate expirationDate;
 
     @NotNull(message = "User id can't be null", groups = CreateValidation.class)
-    @Positive(message = "User id should be positive number",
-    groups = {CreateValidation.class, UpdateValidation.class})
-    private Long userId;
+    private UUID userId;
 }

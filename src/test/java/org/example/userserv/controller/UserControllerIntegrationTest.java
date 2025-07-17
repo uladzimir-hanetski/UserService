@@ -22,6 +22,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
+
 import org.springframework.http.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -151,8 +153,8 @@ class UserControllerIntegrationTest {
         user.setEmail("test2@example.com");
         User testUser2 = userRepository.save(user);
 
-        List<Long> ids = List.of(testUser.getId(), testUser2.getId());
-        HttpEntity<List<Long>> requestEntity = new HttpEntity<>(ids);
+        List<UUID> ids = List.of(testUser.getId(), testUser2.getId());
+        HttpEntity<List<UUID>> requestEntity = new HttpEntity<>(ids);
         ResponseEntity<List<UserResponse>> response = restTemplate.exchange(
                 URL + "ids",
                 HttpMethod.POST,
