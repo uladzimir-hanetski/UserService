@@ -1,0 +1,89 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - CI_Pipeline
+  pull_request:
+    branches:
+      - main
+
+env:
+  POSTGRES_USERNAME: admin
+  POSTGRES_PASSWORD: 12345
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: database
+          POSTGRES_USER: ${{ env.POSTGRES_USERNAME }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:8.0.0-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4.7.1
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Build and run tests
+        run: mvn -B verify
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/database
+          SPRING_DATASOURCE_USERNAME: ${{ env.POSTGRES_USERNAME }}
+          SPRING_DATASOURCE_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          SPRING_DATA_REDIS_HOST: localhost
+
+  code-analysis:
+    needs: build-test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4.7.1
+        with:
+          java-version: 21
+          distribution: 'temurin'
+
+      - name: Run SonarQube analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=uladzimir-hanetski_UserService
+
+  build-docker:
+    needs: code-analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3.4.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6.18.0
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/user-service:latest
