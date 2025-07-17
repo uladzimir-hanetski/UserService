@@ -21,6 +21,8 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -50,11 +52,13 @@ class CardServiceTest {
     private final CardResponse cardResponse = new CardResponse();
     private final User user = new User();
 
+    private final UUID uuid = UUID.randomUUID();
+
     @BeforeEach
     void initialize() {
         LocalDate expiryDate = LocalDate.of(2027, 1, 1);
 
-        user.setId(1L);
+        user.setId(uuid);
         user.setEmail("test@example.com");
 
         card.setId(1L);
@@ -66,20 +70,20 @@ class CardServiceTest {
         cardRequest.setNumber("1111");
         cardRequest.setHolder("Holder");
         cardRequest.setExpirationDate(expiryDate);
-        cardRequest.setUserId(1L);
+        cardRequest.setUserId(uuid);
 
         cardResponse.setId(1L);
         cardResponse.setNumber("1111");
         cardResponse.setHolder("Holder");
         cardResponse.setExpirationDate(expiryDate);
-        cardResponse.setUserId(1L);
+        cardResponse.setUserId(uuid);
     }
 
     @Test
     void testCreateCard() {
         cache.put(user.getEmail(), user);
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.findById(uuid)).thenReturn(Optional.of(user));
         when(cardRepository.existsByNumber("1111")).thenReturn(false);
         when(cardMapper.toEntity(cardRequest)).thenReturn(card);
         when(cardRepository.save(any(Card.class))).thenReturn(card);
@@ -137,7 +141,7 @@ class CardServiceTest {
             updatedResponse.setNumber("New number");
             updatedResponse.setHolder("New holder");
             updatedResponse.setExpirationDate(updateRequest.getExpirationDate());
-            updatedResponse.setUserId(1L);
+            updatedResponse.setUserId(uuid);
 
             when(cardRepository.save(any(Card.class))).thenReturn(updatedCard);
             when(cardMapper.toResponse(updatedCard)).thenReturn(updatedResponse);

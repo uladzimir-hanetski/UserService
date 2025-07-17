@@ -35,6 +35,8 @@ services:
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       SPRING_DATA_REDIS_HOST: redis
+    env_file:
+      - .env
     networks:
       - user_network
     depends_on:
