@@ -3,6 +3,7 @@ package org.example.userserv.util;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import org.example.userserv.exception.InvalidSecurityParametersException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -25,7 +26,7 @@ public class SecurityUtil {
             publicKey = KeyFactory.getInstance("RSA").generatePublic(
                     new X509EncodedKeySpec(Base64.getDecoder().decode(pbKey)));
         } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            throw new InvalidSecurityParametersException(e.getMessage());
         }
     }
 
@@ -55,8 +56,8 @@ public class SecurityUtil {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
             Object principal = authentication.getPrincipal();
-            if (principal instanceof UUID) {
-                return (UUID) principal;
+            if (principal instanceof UUID id) {
+                return id;
             }
         }
         throw new AccessDeniedException("Access denied");

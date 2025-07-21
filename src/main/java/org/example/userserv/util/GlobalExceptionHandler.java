@@ -3,6 +3,7 @@ package org.example.userserv.util;
 import jakarta.validation.ConstraintViolationException;
 import org.example.userserv.exception.CardNotFoundException;
 import org.example.userserv.exception.ErrorResponse;
+import org.example.userserv.exception.InvalidSecurityParametersException;
 import org.example.userserv.exception.UserNotFoundException;
 import org.example.userserv.exception.ValueAlreadyExistsException;
 import org.springframework.http.HttpStatus;
@@ -75,6 +76,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.FORBIDDEN,
                 "Access denied", ex.getMessage());
+
+        return new ResponseEntity<>(errorResponse, errorResponse.getStatus());
+    }
+
+    @ExceptionHandler(InvalidSecurityParametersException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidSecurity(InvalidSecurityParametersException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR,
+                "Server error", ex.getMessage());
 
         return new ResponseEntity<>(errorResponse, errorResponse.getStatus());
     }
