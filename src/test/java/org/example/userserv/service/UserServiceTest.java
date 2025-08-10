@@ -9,7 +9,6 @@ import org.example.userserv.exception.ValueAlreadyExistsException;
 import org.example.userserv.mapper.UserMapper;
 import org.example.userserv.repository.CardRepository;
 import org.example.userserv.repository.UserRepository;
-import org.example.userserv.util.SecurityUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,9 +43,6 @@ class UserServiceTest {
     @Mock
     private Cache cache;
 
-    @Mock
-    private SecurityUtil securityUtil;
-
     @InjectMocks
     private UserService userService;
 
@@ -76,7 +72,6 @@ class UserServiceTest {
         when(userMapper.toEntity(userRequest)).thenReturn(user);
         when(userRepository.save(user)).thenReturn(user);
         when(userMapper.toResponse(user)).thenReturn(userResponse);
-        when(securityUtil.getUserIdFromToken(anyString())).thenReturn(uuid);
 
         UserResponse result = userService.create(userRequest);
 

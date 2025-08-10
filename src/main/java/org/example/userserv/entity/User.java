@@ -4,6 +4,7 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -19,6 +20,7 @@ import java.util.UUID;
 public class User {
 
     @Id
+    @GeneratedValue(generator = "uuid")
     private UUID id;
 
     @Column(nullable = false)

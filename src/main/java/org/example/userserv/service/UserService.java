@@ -11,13 +11,11 @@ import org.example.userserv.exception.ValueAlreadyExistsException;
 import org.example.userserv.mapper.UserMapper;
 import org.example.userserv.repository.CardRepository;
 import org.example.userserv.repository.UserRepository;
-import org.example.userserv.util.SecurityUtil;
 import org.springframework.cache.Cache;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.cache.RedisCacheManager;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
@@ -32,23 +30,18 @@ public class UserService {
     private final UserMapper userMapper;
     private final CardRepository cardRepository;
     private final RedisCacheManager cacheManager;
-    private final SecurityUtil securityUtil;
 
     public UserResponse create(UserRequest userRequest) {
         if (userRepository.existsByEmail(userRequest.getEmail()))
             throw new ValueAlreadyExistsException("email", userRequest.getEmail());
 
         User user = userMapper.toEntity(userRequest);
-        user.setId(securityUtil.getCurrentUserId());
 
         return userMapper.toResponse(userRepository.save(user));
     }
 
     @Cacheable(value = CACHE_USERS, key = "#id")
     public UserResponse findById(UUID id) {
-        if (!securityUtil.getCurrentUserId().equals(id))
-            throw new AccessDeniedException("Access denied");
-
         return userRepository.findById(id).map(userMapper::toResponse)
                 .orElseThrow(UserNotFoundException::new);
     }
@@ -70,9 +63,6 @@ public class UserService {
     @CachePut(value = CACHE_USERS, key = "#id")
     @Transactional
     public UserResponse update(UUID id, UserRequest userRequest) {
-        if (!securityUtil.getCurrentUserId().equals(id))
-            throw new AccessDeniedException("Access denied");
-
         User user = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
 
         updateUserFields(user, userRequest);
@@ -115,9 +105,6 @@ public class UserService {
     @CacheEvict(value = CACHE_USERS, key = "#id")
     @Transactional
     public void delete(UUID id) {
-        if (!securityUtil.getCurrentUserId().equals(id))
-            throw new AccessDeniedException("Access denied");
-
         User user = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
 
         List<Card> cards = cardRepository.findByUserId(id);
