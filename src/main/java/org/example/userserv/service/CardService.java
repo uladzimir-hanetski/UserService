@@ -12,13 +12,11 @@ import org.example.userserv.exception.ValueAlreadyExistsException;
 import org.example.userserv.mapper.CardMapper;
 import org.example.userserv.repository.CardRepository;
 import org.example.userserv.repository.UserRepository;
-import org.example.userserv.util.SecurityUtil;
 import org.springframework.cache.Cache;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.cache.RedisCacheManager;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
@@ -33,13 +31,9 @@ public class CardService {
     private final CardMapper cardMapper;
     private final UserRepository userRepository;
     private final RedisCacheManager cacheManager;
-    private final SecurityUtil securityUtil;
 
     @CacheEvict(value = CACHE_USERS, key = "#result.userId")
     public CardResponse create(CardRequest cardRequest) {
-        if (!securityUtil.getCurrentUserId().equals(cardRequest.getUserId()))
-            throw new AccessDeniedException("Access denied");
-
         if (cardRepository.existsByNumber(cardRequest.getNumber()))
             throw new ValueAlreadyExistsException("number", cardRequest.getNumber());
 
@@ -57,8 +51,6 @@ public class CardService {
     @Cacheable(value = CACHE_CARDS, key = "#id")
     public CardResponse findById(Long id) {
         Card card = cardRepository.findById(id).orElseThrow(CardNotFoundException::new);
-        if (!card.getUser().getId().equals(securityUtil.getCurrentUserId()))
-            throw new AccessDeniedException("Access denied");
 
         return cardMapper.toResponse(card);
     }
@@ -76,8 +68,6 @@ public class CardService {
     @Transactional
     public CardResponse update(Long id, CardRequest cardRequest) {
         Card card = cardRepository.findById(id).orElseThrow(CardNotFoundException::new);
-        if (!card.getUser().getId().equals(securityUtil.getCurrentUserId()))
-            throw new AccessDeniedException("Access denied");
 
         updateCardFields(card, cardRequest);
 
@@ -111,8 +101,6 @@ public class CardService {
     @Transactional
     public void delete(Long id) {
         Card card = cardRepository.findById(id).orElseThrow(CardNotFoundException::new);
-        if (!card.getUser().getId().equals(securityUtil.getCurrentUserId()))
-            throw new AccessDeniedException("Access denied");
 
         Cache cache = cacheManager.getCache(CACHE_USERS);
         if (cache != null) {

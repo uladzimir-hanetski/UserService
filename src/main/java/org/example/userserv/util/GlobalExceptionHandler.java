@@ -8,7 +8,6 @@ import org.example.userserv.exception.UserNotFoundException;
 import org.example.userserv.exception.ValueAlreadyExistsException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -68,14 +67,6 @@ public class GlobalExceptionHandler {
                 e.getPropertyPath() + ": " + e.getMessage()).collect(Collectors.joining("; "));
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST,
                 "Invalid request parameters", errors);
-
-        return new ResponseEntity<>(errorResponse, errorResponse.getStatus());
-    }
-
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.FORBIDDEN,
-                "Access denied", ex.getMessage());
 
         return new ResponseEntity<>(errorResponse, errorResponse.getStatus());
     }
